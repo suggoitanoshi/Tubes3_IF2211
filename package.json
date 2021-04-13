@@ -2,6 +2,7 @@
   "name": "tubes3_if2211",
   "version": "1.0.0",
   "description": "",
+  "main": "src/stringmatching.js",
   "scripts": {
     "start": "node src/server.js"
   },
