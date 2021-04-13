@@ -7,7 +7,9 @@ const addChatBubble = (side, content) => {
   let clone = document.querySelector('.chat-bubble-template').content.cloneNode(true);
   clone.querySelector('.chat-bubble').classList.add(side === 0 ? 'chat-user' : 'chat-reply');
   clone.querySelector('.chat-content').textContent = content;
-  document.querySelector('.chat-container').appendChild(clone);
+  let container = document.querySelector('.chat-container');
+  container.appendChild(clone);
+  container.scrollTop = container.scrollHeight;
 }
 
 /**
