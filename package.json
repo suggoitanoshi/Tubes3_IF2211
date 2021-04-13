@@ -1,0 +1,17 @@
+{
+  "name": "tubes3_if2211",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "contributors": [
+    {
+      "name": "Fransiskus Febryan Suryawan",
+      "email": "13519124@std.stei.itb.ac.id",
+      "url": "https://suggoi.fun"
+    },
+    "David Owen Adiwiguna",
+    "Melita"
+  ]
+}

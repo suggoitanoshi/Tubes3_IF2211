@@ -1,0 +1,36 @@
+body{
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-flow: column;
+}
+
+.chat-container{
+  height: 80vh;
+  overflow: auto;
+}
+
+.chat-bubble{
+  display: flex;
+  align-items: center;
+}
+.chat-bubble .image{
+  display: block;
+  --size: 1.5em;
+  border-radius: var(--size);
+  width: var(--size);
+  height: var(--size);
+  align-self: flex-start;
+}
+.chat-user{
+  flex-flow: row-reverse;
+}
+.chat-user .image{
+  background-color: #faf;
+}
+.chat-reply{
+  flex-flow: row;
+}
+.chat-reply .image{
+  background-color: #afa;
+}
