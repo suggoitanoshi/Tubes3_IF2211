@@ -26,5 +26,5 @@ TBA
 Nama|NIM
 ---|---
 Melita|13519063
-Fransiskus Febryan Suryawan|1351924
+Fransiskus Febryan Suryawan|13519124
 David Owen Adiwiguna|13519169
