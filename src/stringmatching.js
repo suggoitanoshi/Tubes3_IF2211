@@ -1,3 +1,8 @@
+/**
+ * Membuat reply dari query yang diberikan
+ * @param {string} query query dari pengguna
+ * @returns {string} reply yang dihasilkan dari pencocokan string
+ */
 const generateReply = (query) => {
   return query;
 };
