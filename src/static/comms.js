@@ -30,7 +30,8 @@ const sendQueryHandle = (e) => {
     },
     body: query
   }).then( data => data.text() ) // parse reply
-    .then( res => addChatBubble(1, res) ); // tambah chat bubble reply
+    .then( res => addChatBubble(1, res) ) // tambah chat bubble reply
+    .catch( err => addChatBubble(1, `An error occured: ${err}`)); // handle errors, echo ke user
   queryDOM.value = '';
 };
 
