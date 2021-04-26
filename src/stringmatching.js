@@ -4,7 +4,7 @@
  * @returns {string} reply yang dihasilkan dari pencocokan string
  */
 const generateReply = (query) => {
-  return query;
+  return extractDate(query).toString();
 };
 
 /**
@@ -46,6 +46,23 @@ const BoyerMoore = (string, pattern) => {
     }
   }
   return -1;
+}
+
+/**
+ * Menghitung Levenshtein Distance antara dua string
+ * @param {string} str1 string pertama
+ * @param {string} str2 string kedua
+ * @returns {int} Levenshtein Distance str1 dan str2
+ */
+const LevenshteinDistance = (str1, str2) => {
+  if(str1.length == 0) return str2.length;
+  if(str2.length == 0) return str1.length;
+  if(str1.charAt(0) == str2.charAt(0)) return LevenshteinDistance(str1.substring(1), str2.substring(1));
+  return 1+Math.min(
+    LevenshteinDistance(str1.substring(1), str2),
+    LevenshteinDistance(str1, str2.substring(1)),
+    LevenshteinDistance(str1.substring(1), str2.substring(1))
+  );
 }
 
 module.exports = { generateReply };
