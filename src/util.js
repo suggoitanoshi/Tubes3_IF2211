@@ -1,9 +1,9 @@
 const fs = require('fs/promises')
 
-const parseCSV = (filename, opts, resolve, reject) => {
+const parseCSV = (filename, opts) => {
   const useHeader = opts?.useHeader ?? true;
   const sep = opts?.separator ?? ',';
-  const regexp = RegExp(`${sep}\\ +`);
+  const regexp = RegExp(`${sep}\\ *`);
   return new Promise((resolve, reject) => {
     fs.readFile(filename).then((content)=>{
       const headers = [];
@@ -12,6 +12,7 @@ const parseCSV = (filename, opts, resolve, reject) => {
              .replaceAll('\r', '')
              .split('\n')
              .forEach((line, i) => {
+               if(line == '') return;
                const entry = line.split(regexp);
                if(useHeader){
                  if(i == 0) entry.forEach((e) => {
