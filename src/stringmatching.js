@@ -38,6 +38,7 @@ const generateReply = async (query) => {
     }
     else data = await db.getDataAll();
 
+    data = data.filter((row) => row['sudah'] == 0);
 
     if(type === 'DEADLINE'){
       return {
@@ -91,15 +92,12 @@ const generateReply = async (query) => {
  */
 const KMP = (string, pattern) => {
   let n = string.length, m = pattern.length;
-  let border = [];
-  border = b(pattern);
-  let i = 0, j = 0;
 
   const b = (x) => {  // border function
     let fail = []
     fail[0] = 0;
     let i = 1, j = 0;
-    let m = pattern.length();
+    let m = pattern.length;
     while (i < m) {
         if (pattern.charAt(j) == pattern.charAt(i)) {
           fail[i] = j + 1;
@@ -116,8 +114,12 @@ const KMP = (string, pattern) => {
       return fail;
   };
 
+  let border = [];
+  border = b(pattern);
+  let i = 0, j = 0;
+
   while (i < n) {
-      if (pattern.charAt(j) == text.charAt(i)) {
+      if (pattern.charAt(j) == string.charAt(i)) {
         if (j == m - 1) return i - m + 1; // Match Found
         i++;
         j++;
