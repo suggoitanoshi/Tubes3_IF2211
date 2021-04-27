@@ -75,6 +75,7 @@ img{
   background-color: #fffad6;
   border-color: #e89300;
   color: #632104;
+  border-bottom-right-radius: 0;
 }
 .chat-reply{
   flex-flow: row;
@@ -83,6 +84,9 @@ img{
   background-color: #afa;
   background-size: 7em;
   margin-left: 15px;
+}
+.chat-reply .chat-content-outer{
+  border-bottom-left-radius: 0;
 }
 
 .chat-content-outer{
