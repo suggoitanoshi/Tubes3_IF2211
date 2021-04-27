@@ -248,7 +248,7 @@ const extractDate = (query) => {
                  'nov': 10,
                  'des': 11
                 }
-  const match = query.matchAll(/(?<d>\d{1,2})(\ |\/|-)(?<m>[a-zA-Z]{3,9}|\d{1,2})(\ |\/|-)(?<y>\d{2,4})/g);
+  const match = query.matchAll(/(?<d>\d{1,2})(\ |\/|-)(?<m>((jan(uari)?)|(feb(ruari)?)|(mar|maret)|(apr|april)|(mei)|(juni?)|(juli?)|(agu(stus)?)|(sep(tember)?)|(okt(ober)?)|(nov(ember)?)|(des(ember)?))|\d{1,2})(\ |\/|-)(?<y>\d{2,4})/g);
   const dates = [...match].map((m) =>{
     m = m.groups;
     return new Date(m.y, month[m?.m?.toLowerCase().substring(0,3)] ?? m.m-1, m.d);
