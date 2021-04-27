@@ -1,5 +1,6 @@
 const path = require('path');
 const util = require('./util.js');
+const db = require('./database.js');
 
 let katapenting;
 let katatanya;
@@ -16,16 +17,37 @@ util.parseCSV(path.join(__dirname, '../data/querywords.csv')).then((data) => {
  * @param {string} query query dari pengguna
  * @returns {string} reply yang dihasilkan dari pencocokan string
  */
-const generateReply = (query) => {
-  const adaKatapenting = katapenting['alias'].filter((kata) => BoyerMoore(query, kata) !== -1).length !== 0;
+const generateReply = async (query) => {
+  const formatDate = (date) => `${date.getDate()}/${date.getMonth()+1}/${date.getFullYear()}`
+  const format = (row) => `(ID: ${row['id']}) ${row['tipe']} - ${row['matkul']} - ${row['topik']} - ${formatDate(row['deadline'])}`
+
+  const adaKatapenting = katapenting['alias'].filter((kata) => BoyerMoore(query, kata) !== -1).length !== 0 || query.match(/deadline/i) !== null;
   if(!adaKatapenting) return {'body': 'Pesan tidak dikenali', 'reaction': 'confuse'};
   const tanya = katatanya['kata'].filter((kata) => BoyerMoore(query, kata) !== -1).length !== 0;
   const date = extractDate(query);
+  let type = extractType(query);
+
   if(tanya){
     const period = getTimePeriod(query, date);
-    return {'body': 'Anda bertanya, bot menjawab', 'reaction': 'talk'};
+    if(type[0] === '[') type = 'DEADLINE';
+    if(period.length !== 2 && period.length !== 0) return {'body': 'Tanggal kurang jelas', 'reaction': 'confuse'};
+    let data;
+    if(period.length === 2){
+      const low = period[0] < period[1] ? 0 : 1;
+      data = await db.getDataFilter(period[low], period[1-low]);
+    }
+    else data = await db.getDataAll();
+
+
+    if(type === 'DEADLINE'){
+      return {
+        'body': data.map((row) => format(row)).join('\n'),
+        'reaction': 'talk'
+      };
+    }
+    data = data.filter((row) => row['tipe'] === type)
+    return {'body': data.map((row) => format(row)).join('\n'), 'reaction': 'talk'};
   }
-  const type = extractType(query);
   const matkul = extractKodeMatkul(query);
   let topic = extractTopic(query);
   if(date.length == 0)
@@ -38,14 +60,21 @@ const generateReply = (query) => {
   }
   else if(type[0]!="[")
   {
-    hasil = date + " | " + type + " | " + matkul[0].toUpperCase(); 
+    const task = {
+      'tipe': type,
+      'topik': topic,
+      'matkul': matkul,
+      'deadline': date[0]
+    };
+    await db.addToDatabase(task);
+    task['deadline'] = date[0];
     /*fs = require('fs');
     fs.appendFile("tasks.txt", hasil + "\n", function(err) {
       if(err) {
           return console.log(err);
       }
       console.log("Saved");});*/
-    return {'body': "[task] " + hasil, 'reaction': 'talk'};
+    return {'body': "Berhasil mencatat task: \n" + format(task), 'reaction': 'talk'};
   }
   else
   {
