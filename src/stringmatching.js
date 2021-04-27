@@ -13,10 +13,18 @@ util.parseCSV(path.join(__dirname, '../data/katapenting.csv')).then((data) => {
  * @returns {string} reply yang dihasilkan dari pencocokan string
  */
 const generateReply = (query) => {
-  type = extractType(query);
-  date = extractDate(query).toString();
-  matkul = extractKodeMatkul(query);
-  if(date!="Invalid Date" && type[0]!="[" && matkul!=null)
+  const type = extractType(query);
+  const date = extractDate(query);
+  const matkul = extractKodeMatkul(query);
+  if(isNaN(date))
+  {
+    return 'Error date';
+  }
+  else if(typeof matkul === 'undefined')
+  {
+    return 'Error matkul';
+  }
+  else if(type[0]!="[")
   {
     hasil = date + " | " + type + " | " + matkul[0].toUpperCase(); 
     /*fs = require('fs');
@@ -26,14 +34,6 @@ const generateReply = (query) => {
       }
       console.log("Saved");});*/
     return "[task] " + hasil;
-  }
-  else if(date=="Invalid Date")
-  {
-    return "Error date";
-  }
-  else if(matkul==null)
-  {
-    return "Error matkul";
   }
   else
   {
@@ -115,24 +115,19 @@ const extractDate = (query) => {
                  'des': 11
                 }
   const match = query.match(/(?<d>\d{1,2})(\ |\/|-)(?<m>[a-zA-Z]{3}|\d{1,2})[a-zA-Z]*(\ |\/|-)(?<y>\d{1,4})/)?.groups;
+  if(match?.d > 30 || match?.m > 11) return NaN;
   return new Date(match?.y, month[match?.m?.toLowerCase()] ?? match?.m-1, match?.d);
 }
 
 const extractKodeMatkul = (query) => {
   kode = query.match(/([a-z]{2}\d{4})/i);
-  if(kode!=null)
-  {
-    return kode[0].toUpperCase();
-  }
-  else
-  {
-    return "[Matkul not found]";
-  }
+  return kode?.[0]?.toUpperCase();
 }
 
 const extractType = (query) => {
-  tipe = query.match(/(tubes|tugas besar|tucil|tugas kecil|kuis|quiz|uts|uas|ujian|praktikum|pr)+/ig);
-  if(tipe==null)
+  tipe = query.match(new RegExp(`\\s+${katapenting['alias'].join('|')}\\s+`, 'ig'));
+  console.log(tipe);
+  if(tipe === null)
   {
     return "[Task type not detected]";
   }
@@ -142,13 +137,7 @@ const extractType = (query) => {
   }
   else
   {
-    if(tipe[0].toUpperCase()=="TUBES" || tipe[0].toUpperCase()=="TUGAS BESAR") {return "Tugas Besar";}
-    else if(tipe[0].toUpperCase()=="TUCIL" || tipe[0].toUpperCase()=="TUGAS KECIL") {return "Tugas Kecil";}
-    else if(tipe[0].toUpperCase()=="KUIS" || tipe[0].toUpperCase()=="QUIZ") {return "Kuis";}
-    else if(tipe[0].toUpperCase()=="UTS" || tipe[0].toUpperCase()=="UAS" || tipe[0].toUpperCase()=="UJIAN") {return "Ujian";}
-    else if(tipe[0].toUpperCase()=="PRAKTIKUM") {return "Praktikum";}
-    else if(tipe[0].toUpperCase()=="PR") {return "PR";}
-    else {return "[Task type not detected]";}
+    return katapenting['tipe'][katapenting['alias'].indexOf(tipe[0].toLowerCase())] ?? '[Task type not detected]';
   }
 }
 
