@@ -69,12 +69,6 @@ const generateReply = async (query) => {
     };
     await db.addToDatabase(task);
     task['deadline'] = date[0];
-    /*fs = require('fs');
-    fs.appendFile("tasks.txt", hasil + "\n", function(err) {
-      if(err) {
-          return console.log(err);
-      }
-      console.log("Saved");});*/
     return {'body': "Berhasil mencatat task: \n" + format(task), 'reaction': 'talk'};
   }
   else
@@ -196,10 +190,10 @@ const extractDate = (query) => {
                  'nov': 10,
                  'des': 11
                 }
-  const match = query.matchAll(/(?<d>\d{1,2})(\ |\/|-)(?<m>[a-zA-Z]{3}|\d{1,2})[a-zA-Z]*(\ |\/|-)(?<y>\d{1,4})/g);
+  const match = query.matchAll(/(?<d>\d{1,2})(\ |\/|-)(?<m>[a-zA-Z]{3,9}|\d{1,2})(\ |\/|-)(?<y>\d{2,4})/g);
   const dates = [...match].map((m) =>{
     m = m.groups;
-    return new Date(m.y, month[m?.m?.toLowerCase()] ?? m.m-1, m.d);
+    return new Date(m.y, month[m?.m?.toLowerCase().substring(0,3)] ?? m.m-1, m.d);
   });
   return dates;
 }
@@ -220,18 +214,18 @@ const extractKodeMatkul = (query) => {
  * @returns {string} kata penting, atau error yang dibatasi []
  */
 const extractType = (query) => {
-  tipe = query.match(new RegExp(`${katapenting['alias'].join('|')}`, 'ig'));
+  re = `\\s+(${katapenting['alias'].join('|')})\\s+`
+  tipe = new RegExp(re, 'ig').exec(query);
   if(tipe === null)
   {
     return "[Task type not detected]";
   }
-  else if(tipe.length>1)
-  {
-    return "[More than one task detected]";
+  else if(tipe.length !== 1){
+    return "[Detected tasks count is not one]";
   }
   else
   {
-    return katapenting['tipe'][katapenting['alias'].indexOf(tipe[0].toLowerCase())] ?? '[Task type not detected]';
+    return katapenting['tipe'][katapenting['alias'].indexOf(tipe[1]?.toLowerCase())] ?? '[Task type not detected]';
   }
 }
 
