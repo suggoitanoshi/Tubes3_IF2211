@@ -4,7 +4,33 @@
  * @returns {string} reply yang dihasilkan dari pencocokan string
  */
 const generateReply = (query) => {
-  return extractDate(query).toString();
+  type = extractType(query);
+  date = extractDate(query).toString();
+  matkul = query.match(/([a-z]{2}\d{4})/i);
+  if(date!="Invalid Date" && type[0]!="[" && matkul!=null)
+  {
+    hasil = date + " | " + type + " | " + matkul[0].toUpperCase(); 
+    fs = require('fs');
+    fs.appendFile("tasks.txt", hasil + "\n", function(err) {
+      if(err) {
+          return console.log(err);
+      }
+      console.log("Saved");});
+    return "[task] " + hasil;
+  }
+  else if(date=="Invalid Date")
+  {
+    return "Error date";
+  }
+  else if(matkul==null)
+  {
+    return "Error matkul";
+  }
+  else
+  {
+    return "Error type";
+  }
+
 };
 
 /**
@@ -81,6 +107,28 @@ const extractDate = (query) => {
                 }
   const match = query.match(/(?<d>\d{1,2})(\ |\/|-)(?<m>[a-zA-Z]{3}|\d{1,2})[a-zA-Z]*(\ |\/|-)(?<y>\d{1,4})/)?.groups;
   return new Date(match?.y, month[match?.m] ?? match?.m, match?.d);
+}
+
+const extractType = (query) => {
+  tipe = query.match(/(tubes|tugas besar|tucil|tugas kecil|kuis|quiz|uts|uas|ujian|praktikum|pr)+/ig);
+  if(tipe==null)
+  {
+    return "[Task type not detected]";
+  }
+  else if(tipe.length>1)
+  {
+    return "[More than one task detected]";
+  }
+  else
+  {
+    if(tipe[0].toUpperCase()=="TUBES" || tipe[0].toUpperCase()=="TUGAS BESAR") {return "Tugas Besar";}
+    else if(tipe[0].toUpperCase()=="TUCIL" || tipe[0].toUpperCase()=="TUGAS KECIL") {return "Tugas Kecil";}
+    else if(tipe[0].toUpperCase()=="KUIS" || tipe[0].toUpperCase()=="QUIZ") {return "Kuis";}
+    else if(tipe[0].toUpperCase()=="UTS" || tipe[0].toUpperCase()=="UAS" || tipe[0].toUpperCase()=="UJIAN") {return "Ujian";}
+    else if(tipe[0].toUpperCase()=="PRAKTIKUM") {return "Praktikum";}
+    else if(tipe[0].toUpperCase()=="PR") {return "PR";}
+    else {return "[Task type not detected]";}
+  }
 }
 
 module.exports = { generateReply };
