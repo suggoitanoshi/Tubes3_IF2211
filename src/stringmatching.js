@@ -189,7 +189,7 @@ const extractKodeMatkul = (query) => {
  * @returns {string} kata penting, atau error yang dibatasi []
  */
 const extractType = (query) => {
-  tipe = query.match(new RegExp(`\\s+${katapenting['alias'].join('|')}\\s+`, 'ig'));
+  tipe = query.match(new RegExp(`${katapenting['alias'].join('|')}`, 'ig'));
   if(tipe === null)
   {
     return "[Task type not detected]";
