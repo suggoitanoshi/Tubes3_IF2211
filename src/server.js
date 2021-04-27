@@ -16,9 +16,10 @@ const messageAPI = (req, res) => {
   req.on('data', chunk => body.push(chunk));
   req.on('end', () =>{
     body = Buffer.concat(body).toString()
-    response = sm.generateReply(body);
-    res.writeHead(200, {'Content-Type': 'application/json'});
-    res.end(JSON.stringify(response));
+    sm.generateReply(body).then((data) => {
+      res.writeHead(200, {'Content-Type': 'application/json'});
+      res.end(JSON.stringify(data));
+    });
   });
 }
 
