@@ -2,9 +2,13 @@ const path = require('path');
 const util = require('./util.js');
 
 let katapenting;
+let katatanya;
 
 util.parseCSV(path.join(__dirname, '../data/katapenting.csv')).then((data) => {
   katapenting = data;
+});
+util.parseCSV(path.join(__dirname, '../data/querywords.csv')).then((data) => {
+  katatanya = data;
 });
 
 /**
@@ -13,10 +17,18 @@ util.parseCSV(path.join(__dirname, '../data/katapenting.csv')).then((data) => {
  * @returns {string} reply yang dihasilkan dari pencocokan string
  */
 const generateReply = (query) => {
-  const type = extractType(query);
+  const adaKatapenting = katapenting['alias'].filter((kata) => BoyerMoore(query, kata) !== -1).length !== 0;
+  if(!adaKatapenting) return 'Pesan tidak dikenali';
+  const tanya = katatanya['kata'].filter((kata) => BoyerMoore(query, kata) !== -1).length !== 0;
   const date = extractDate(query);
+  if(tanya){
+    const period = getTimePeriod(query, date);
+    return 'Anda bertanya, bot menjawab';
+  }
+  const type = extractType(query);
   const matkul = extractKodeMatkul(query);
-  if(isNaN(date))
+  let topic = extractTopic(query);
+  if(date.length == 0)
   {
     return 'Error date';
   }
@@ -81,7 +93,7 @@ const KMP = (string, pattern) => {
         i++;
         j++;
       }
-      else if (j > 0) let j = fail[j-1];
+      else if (j > 0) j = fail[j-1];
       else i++;
   } 
   return -1; // No Match Found
@@ -134,6 +146,11 @@ const LevenshteinDistance = (str1, str2) => {
   );
 }
 
+/**
+ * Mengambil tanggal tanggal yang valid dari query
+ * @param {string} query query dari pengguna
+ * @returns {[Date]} Array berisi date-date yang valid dari query
+ */
 const extractDate = (query) => {
   const month = {'jan': 0,
                  'feb': 1,
@@ -148,19 +165,31 @@ const extractDate = (query) => {
                  'nov': 10,
                  'des': 11
                 }
-  const match = query.match(/(?<d>\d{1,2})(\ |\/|-)(?<m>[a-zA-Z]{3}|\d{1,2})[a-zA-Z]*(\ |\/|-)(?<y>\d{1,4})/)?.groups;
-  if(match?.d > 30 || match?.m > 11) return NaN;
-  return new Date(match?.y, month[match?.m?.toLowerCase()] ?? match?.m-1, match?.d);
+  const match = query.matchAll(/(?<d>\d{1,2})(\ |\/|-)(?<m>[a-zA-Z]{3}|\d{1,2})[a-zA-Z]*(\ |\/|-)(?<y>\d{1,4})/g);
+  const dates = [...match].map((m) =>{
+    m = m.groups;
+    return new Date(m.y, month[m?.m?.toLowerCase()] ?? m.m-1, m.d);
+  });
+  return dates;
 }
 
+/**
+ * Mengambil kode mata kuliah dari query
+ * @param {string} query 
+ * @returns {string} kode matkul, mungkin undefined
+ */
 const extractKodeMatkul = (query) => {
   kode = query.match(/([a-z]{2}\d{4})/i);
   return kode?.[0]?.toUpperCase();
 }
 
+/**
+ * Mengambil tipe kata penting dari query
+ * @param {string} query query dari pengguna
+ * @returns {string} kata penting, atau error yang dibatasi []
+ */
 const extractType = (query) => {
   tipe = query.match(new RegExp(`\\s+${katapenting['alias'].join('|')}\\s+`, 'ig'));
-  console.log(tipe);
   if(tipe === null)
   {
     return "[Task type not detected]";
@@ -173,6 +202,59 @@ const extractType = (query) => {
   {
     return katapenting['tipe'][katapenting['alias'].indexOf(tipe[0].toLowerCase())] ?? '[Task type not detected]';
   }
+}
+
+/**
+ * Mengambil topik dari task tertentu berdasarkan query
+ * @param {string} query query yang diberikan pengguna
+ * @returns {string} topik, mungkin undefined.
+ */
+const extractTopic = (query) => {
+  const topic = query.match(/".*"/)?.[0];
+  return topic?.substring(1, topic?.length-1);
+}
+
+/**
+ * Mengambil tahun, bulan, dan tanggal hari ini
+ * @returns {{y, m, d}} objek berisi `y`: tahun, `m`: bulan, dan `d`: hari.
+ */
+const getToday = () => {
+  const now = new Date(Date.now());
+  return {'y': now.getFullYear(), 'm': now.getMonth(), 'd': now.getDate()};
+}
+
+/**
+ * Mengambil "range" dua tanggal dari query
+ * @param {string} query query dari pengguna
+ * @param {string} dates tanggal yang di-extract dari query
+ * @returns {[Date]} Array berisi 2 date, awal dan akhir. mungkin kosong.
+ */
+const getTimePeriod = (query, dates) => {
+  if(query.match(/antara/i) !== null){
+    if(dates?.length < 2) return undefined;
+    return dates.slice(0,2);
+  }
+  if(query.match(/hari ini/i) !== null){
+    const datetoday = getToday();
+    return [
+      new Date(datetoday.y, datetoday.m, datetoday.d),
+      new Date(datetoday.y, datetoday.m, datetoday.d, 23, 59, 59)
+    ];
+  }
+  if(query.match(/ke depan/i) !== null){
+    const range = query.match(/(\d)\s+(.*)?\s+ke depan/)?.groups;
+    let mult = 1, n = 0;
+    if(typeof range?.[0] === 'undefined') return undefined;
+    else n = range?.[0]-0;
+    if(typeof range?.[1] === 'undefined') return undefined;
+    else mult = range?.[1].match(/minggu/i) === null ? 1 : 7;
+    const datetoday = getToday();
+    return [
+      new Date(datetoday.y, datetoday.m, datetoday.d),
+      new Date(datetoday.y, datetoday.m, datetoday.d+(mult*n))
+    ];
+  }
+  else return [];
 }
 
 module.exports = { generateReply };
