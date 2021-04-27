@@ -2,14 +2,19 @@ const path = require('path');
 const util = require('./util.js');
 const db = require('./database.js');
 
-let katapenting;
-let katatanya;
+let katapenting, katatanya, kataubah, kataselesai;
 
 util.parseCSV(path.join(__dirname, '../data/katapenting.csv')).then((data) => {
   katapenting = data;
 });
 util.parseCSV(path.join(__dirname, '../data/querywords.csv')).then((data) => {
   katatanya = data;
+});
+util.parseCSV(path.join(__dirname, "../data/changekeyword.csv")).then((data) => {
+  kataubah = data;
+});
+util.parseCSV(path.join(__dirname, '../data/finishkeyword.csv')).then((data) => {
+  kataselesai = data;
 });
 
 /**
@@ -18,49 +23,91 @@ util.parseCSV(path.join(__dirname, '../data/querywords.csv')).then((data) => {
  * @returns {string} reply yang dihasilkan dari pencocokan string
  */
 const generateReply = async (query) => {
+  /* Fungsi formatting */
   const formatDate = (date) => `${date.getDate()}/${date.getMonth()+1}/${date.getFullYear()}`
   const format = (row) => `(ID: ${row['id']}) ${row['tipe']} - ${row['matkul']} - ${row['topik']} - ${formatDate(row['deadline'])}`
+  if(BoyerMoore(query, 'help') !== -1){
+    return {
+      'body': '[Fitur]\n\
+1. Menambahkan task baru\n\
+2. Melihat daftar task\n\
+3. Membarui task\n\
+4. Menandai task selesai\n\
+5. \n\
+[Daftar Kata Penting]\n'+
+      katapenting['alias'].reduce((acc, curr, i) => { acc[i] = `${i+1}. ${curr}`; return acc }, []).join('\n'),
+      'reaction': 'talk'
+    }
+  }
 
-  const adaKatapenting = katapenting['alias'].filter((kata) => BoyerMoore(query, kata) !== -1).length !== 0 || query.match(/deadline/i) !== null;
-  if(!adaKatapenting) return {'body': 'Pesan tidak dikenali', 'reaction': 'confuse'};
+  /* kata-kata penting */
   const tanya = katatanya['kata'].filter((kata) => BoyerMoore(query, kata) !== -1).length !== 0;
+  const ubah = kataubah['kata'].filter((kata) => BoyerMoore(query, kata) !== -1).length !== 0;
+  const selesai = kataselesai['kata'].filter((kata) => BoyerMoore(query, kata) !== -1).length !== 0;
+  const adaKatapenting = katapenting['alias'].filter((kata) => BoyerMoore(query, kata) !== -1).length !== 0 ||
+    query.match(/deadline/i) !== null || tanya || ubah || selesai;
+
+  if(!adaKatapenting) return {'body': 'Pesan tidak dikenali', 'reaction': 'confuse'};
   const date = extractDate(query);
   let type = extractType(query);
 
   if(tanya){
     const period = getTimePeriod(query, date);
-    if(type[0] === '[') type = 'DEADLINE';
-    if(period.length !== 2 && period.length !== 0) return {'body': 'Tanggal kurang jelas', 'reaction': 'confuse'};
-    let data;
-    if(period.length === 2){
-      const low = period[0] < period[1] ? 0 : 1;
-      data = await db.getDataFilter(period[low], period[1-low]);
-    }
-    else data = await db.getDataAll();
+    if(typeof period !== 'undefined'){
+      if(type[0] === '[') type = 'DEADLINE';
+      if(period?.length !== 2 && period?.length !== 0) return {'body': 'Tanggal kurang jelas', 'reaction': 'confuse'};
+      let data;
+      if(period?.length === 2){
+        const low = period[0] < period[1] ? 0 : 1;
+        data = await db.getDataFilter(period[low], period[1-low]);
+      }
+      else data = await db.getDataAll();
 
-    data = data.filter((row) => row['sudah'] == 0);
+      data = data.filter((row) => row['sudah'] == 0);
 
-    if(type === 'DEADLINE'){
-      return {
-        'body': data.map((row) => format(row)).join('\n'),
-        'reaction': 'talk'
-      };
+      if(type !== 'DEADLINE') data = data.filter((row) => row['tipe'] === type);
+
+      if(data.length === 0) return {'body': 'Tidak ada deadline~', 'reaction': 'talk'};
+
+      if(type === 'DEADLINE'){
+        return {
+          'body': data.map((row) => format(row)).join('\n'),
+          'reaction': 'talk'
+        };
+      }
+      return {'body': data.map((row) => format(row)).join('\n'), 'reaction': 'talk'};
     }
-    data = data.filter((row) => row['tipe'] === type)
-    return {'body': data.map((row) => format(row)).join('\n'), 'reaction': 'talk'};
+  }
+  if(ubah || selesai){
+    const id = query.match(/(id|task)\s+(\d+)/i)?.[2];
+    if(typeof id === 'undefined') return {'body': 'ID tidak ketemu', 'reaction': 'confuse'};
+    const dataall = await db.getDataAll();
+    const row = dataall.filter((row) => row['id'] === id)[0]
+    if(typeof row === 'undefined') return {'body': 'ID tidak ketemu', 'reaction': 'confuse'};
+    if(ubah){
+      if(isNaN(date[0])) return {'body': 'Tanggal tidak jelas', 'reaction': 'confuse'};
+      row['deadline'] = date[0];
+      await db.editRow(row);
+      return {'body': `Berhasil mengubah deadline ${row['topik']} (ID: ${row['id']}) menjadi ${formatDate(date[0])}.`, 'reaction': 'talk'};
+    }
+    if(selesai){
+      row['sudah'] = 1;
+      await db.editRow(row);
+      return {'body': `Hore, kamu menyelesaikan ${row['topik']} (ID: ${row['id']})!`, 'reaction': 'talk'};
+    }
   }
   const matkul = extractKodeMatkul(query);
   let topic = extractTopic(query);
-  if(date.length == 0)
+  if(type[0]!="[")
   {
-    return {'body': 'Error date', 'reaction': 'confuse'};
-  }
-  else if(typeof matkul === 'undefined')
-  {
-    return {'body': 'Error matkul', 'reaction': 'confuse'};
-  }
-  else if(type[0]!="[")
-  {
+    if(date.length == 0)
+    {
+      return {'body': 'Tanggal tidak dikenali', 'reaction': 'confuse'};
+    }
+    else if(typeof matkul === 'undefined')
+    {
+      return {'body': 'Matkul tidak dikenali', 'reaction': 'confuse'};
+    }
     const task = {
       'tipe': type,
       'topik': topic,
@@ -73,7 +120,18 @@ const generateReply = async (query) => {
   }
   else
   {
-    return {'body': "Error type", 'reaction': 'confuse'};
+    const sim = {word: '', percent: 1};
+    query.split(' ').forEach((q) => {
+      katapenting['alias'].forEach((word) => {
+        const dist = LevenshteinDistance(q, word)/Math.max(q.length, word.length);
+        if(sim.percent > dist){
+          sim.word = word;
+          sim.percent = dist;
+        }
+      });
+    });
+    if(sim.percent < 0.3) return {'body': `Mungkin anda bermaksud mengetik: ${sim.word}?`, 'reaction': 'confuse'};
+    return {'body': "Perintah tidak dikenali", 'reaction': 'confuse'};
   }
 
 };
@@ -214,13 +272,13 @@ const extractKodeMatkul = (query) => {
  * @returns {string} kata penting, atau error yang dibatasi []
  */
 const extractType = (query) => {
-  re = `\\s+(${katapenting['alias'].join('|')})\\s+`
+  re = `\\s*(${katapenting['alias'].join('|')})\\s*`
   tipe = new RegExp(re, 'ig').exec(query);
   if(tipe === null)
   {
     return "[Task type not detected]";
   }
-  else if(tipe.length !== 1){
+  else if(typeof tipe?.[2] !== 'undefined'){
     return "[Detected tasks count is not one]";
   }
   else
@@ -279,7 +337,8 @@ const getTimePeriod = (query, dates) => {
       new Date(datetoday.y, datetoday.m, datetoday.d+(mult*n))
     ];
   }
-  else return [];
+  if(query.match(/semua/i) !== null) return [];
+  return undefined;
 }
 
-module.exports = { generateReply };
+module.exports = { generateReply, LevenshteinDistance };
