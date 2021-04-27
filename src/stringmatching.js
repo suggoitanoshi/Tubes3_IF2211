@@ -6,16 +6,16 @@
 const generateReply = (query) => {
   type = extractType(query);
   date = extractDate(query).toString();
-  matkul = query.match(/([a-z]{2}\d{4})/i);
+  matkul = extractKodeMatkul(query);
   if(date!="Invalid Date" && type[0]!="[" && matkul!=null)
   {
     hasil = date + " | " + type + " | " + matkul[0].toUpperCase(); 
-    fs = require('fs');
+    /*fs = require('fs');
     fs.appendFile("tasks.txt", hasil + "\n", function(err) {
       if(err) {
           return console.log(err);
       }
-      console.log("Saved");});
+      console.log("Saved");});*/
     return "[task] " + hasil;
   }
   else if(date=="Invalid Date")
@@ -107,6 +107,18 @@ const extractDate = (query) => {
                 }
   const match = query.match(/(?<d>\d{1,2})(\ |\/|-)(?<m>[a-zA-Z]{3}|\d{1,2})[a-zA-Z]*(\ |\/|-)(?<y>\d{1,4})/)?.groups;
   return new Date(match?.y, month[match?.m] ?? match?.m, match?.d);
+}
+
+const extractKodeMatkul = (query) => {
+  kode = query.match(/([a-z]{2}\d{4})/i);
+  if(kode!=null)
+  {
+    return kode[0].toUpperCase();
+  }
+  else
+  {
+    return "[Matkul not found]";
+  }
 }
 
 const extractType = (query) => {
