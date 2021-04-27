@@ -1,6 +1,7 @@
 # Tubes 3 IF2211
 ## String Matching dan Regex dalam Deadline Reminder
-> Quotes atau oneliner yang bagus
+> ## AIMBot
+> AkuInginMain Bot
 
 ### Daftar Isi
 - [Deskripsi umum](#deskripsi-umum)
@@ -13,7 +14,7 @@
 String matching dan Regex dalam Deadline Reminder
 
 ### Teknologi yang digunakan
-NodeJS
+NodeJS v15
 
 ### Persiapan/menjalankan program
 1. Jalankan server dengan `npm run start`
