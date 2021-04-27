@@ -81,8 +81,6 @@ img{
 }
 .chat-reply .image{
   background-color: #afa;
-  background: url('bot.gif');
-  
   background-size: 7em;
   margin-left: 15px;
 }
@@ -94,13 +92,18 @@ img{
 .reaction{
   content: '?!';
   height: 1.2em;
+  border-radius: 10px;
+  background-image: url("question.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 2em;
+  background-color: #ffffff;
   width: 1em;
   display: block;
   position: absolute;
   right: -.75em;
   top: -.75em;
   padding: .3em;
-  background: pink;
 }
     
 .query-container{
