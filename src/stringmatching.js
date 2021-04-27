@@ -92,21 +92,21 @@ const LevenshteinDistance = (str1, str2) => {
 }
 
 const extractDate = (query) => {
-  const month = {'Jan': 0,
-                 'Feb': 1,
-                 'Mar': 2,
-                 'Apr': 3,
-                 'Mei': 4,
-                 'Jun': 5,
-                 'Jul': 6,
-                 'Agu': 7,
-                 'Sep': 8,
-                 'Okt': 9,
-                 'Nov': 10,
-                 'Des': 11
+  const month = {'jan': 0,
+                 'feb': 1,
+                 'mar': 2,
+                 'apr': 3,
+                 'mei': 4,
+                 'jun': 5,
+                 'jul': 6,
+                 'agu': 7,
+                 'sep': 8,
+                 'okt': 9,
+                 'nov': 10,
+                 'des': 11
                 }
   const match = query.match(/(?<d>\d{1,2})(\ |\/|-)(?<m>[a-zA-Z]{3}|\d{1,2})[a-zA-Z]*(\ |\/|-)(?<y>\d{1,4})/)?.groups;
-  return new Date(match?.y, month[match?.m] ?? match?.m, match?.d);
+  return new Date(match?.y, month[match?.m?.toLowerCase()] ?? match?.m-1, match?.d);
 }
 
 const extractKodeMatkul = (query) => {
