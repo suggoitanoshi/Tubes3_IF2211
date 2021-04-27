@@ -37,4 +37,28 @@ const parseCSV = (filename, opts) => {
   });
 }
 
-module.exports = { parseCSV };
+const writeCSV = (filename, cols, opts) => {
+  const useHeader = opts?.useHeader ?? true;
+  let header = [];
+  const writeRow = () => {
+    fs.appendFile(filename, header.reduce((ax, cx, ci) => { ax[ci] = cols[cx]; return ax; }, []).join(',')+"\n");
+  }
+  if(useHeader){
+    parseCSV(filename, opts).then((data) => {
+      Object.keys(data).forEach((k) => header.push(k));
+      writeRow();
+    }).catch((err) => {
+      Object.keys(cols).forEach((k) => header.push(k));
+      fs.writeFile(filename, header.join(',')+"\n");
+      writeRow();
+    });
+  }
+  else{
+    for(let i = 0; i < cols.length; i++){
+      header[i] = i;
+    }
+    writeRow();
+  }
+}
+
+module.exports = { parseCSV, writeCSV };
