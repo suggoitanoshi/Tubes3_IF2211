@@ -1,3 +1,12 @@
+const path = require('path');
+const util = require('./util.js');
+
+let katapenting;
+
+util.parseCSV(path.join(__dirname, '../data/katapenting.csv')).then((data) => {
+  katapenting = data;
+});
+
 /**
  * Membuat reply dari query yang diberikan
  * @param {string} query query dari pengguna
