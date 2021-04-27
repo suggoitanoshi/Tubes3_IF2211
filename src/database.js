@@ -21,7 +21,16 @@ const getDataFilter = (from, to) => {
 }
 const addToDatabase = (data) => {
   data['deadline'] = `${data['deadline'].getMonth()}/${data['deadline'].getDate()}/${data['deadline'].getFullYear()}`
-  util.writeCSV('../data/tasks.csv', data);
+  data['sudah'] = 0;
+  const target = path.join(__dirname, '../data/tasks.csv');
+  return getDataAll().then((dbdata) => {
+    data['id'] = dbdata[dbdata.length-1]['id']-0+1;
+    return util.writeCSV(target, data);
+  })
+  .catch((err) => {
+    data['id'] = 1;
+    return util.writeCSV(target, data);
+  });
 }
 
 module.exports = { getDataAll,getDataFilter, addToDatabase };
