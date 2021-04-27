@@ -11,6 +11,9 @@ const addChatBubble = (side, content, reaction) => {
   if(side == 1){
     if(reaction === 'confuse'){
       clone.querySelector('.image').src = 'bot_confuse.webm';
+      let qm = document.createElement('div');
+      qm.classList.add('reaction')
+      clone.querySelector('.chat-content-outer').appendChild(qm);
     }
     else{
       clone.querySelector('.image').src = 'bot_talk.webm';

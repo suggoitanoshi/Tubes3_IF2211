@@ -31,7 +31,7 @@ img{
   height: calc(100vh - 240px);
 }
 
-.chat-content{
+.chat-content-outer{
   padding: 15px;
   border-style: solid;
   border-width: 1px;
@@ -67,7 +67,7 @@ img{
   background-size: 6em;
   margin-right: 15px;
 }
-.chat-user .chat-content{
+.chat-user .chat-content-outer{
   background-color: #fffad6;
   border-color: #e89300;
   color: #632104;
@@ -82,12 +82,37 @@ img{
   background-size: 7em;
   margin-left: 15px;
 }
+
+.chat-content-outer{
+  position: relative;
+}
+
+.reaction{
+  content: '?!';
+  height: 1.2em;
+  width: 1em;
+  display: block;
+  position: absolute;
+  right: -.75em;
+  top: -.75em;
+  padding: .3em;
+  background: pink;
+}
     
 .query-container{
   text-align: center;
   width: 100%;
   position: absolute;
   bottom: 40px;
+}
+
+input{
+  border: 0;
+  --offset: .2em;
+  --smear: .2em;
+  --opacity: 0.1;
+  box-shadow: var(--offset) var(--offset) var(--smear) var(--smear) rgba(0, 0, 0, var(--opacity));
+  transition: box-shadow .1s;
 }
 
 input[type=text]{
@@ -97,11 +122,25 @@ input[type=text]{
 }
 
 input[type=submit]{
+  --h: 209;
+  --s: 60%;
+  --l: 50%;
   padding: 10px;
-  background-color: #3583cc;
+  background-color: hsl(var(--h), var(--s), var(--l));
   color: white;
   border-color: #3583cc;
   border-radius: 10px;
+  transition: background-color .1s, box-shadow .1s;
+}
+
+input[type=submit]:hover{
+  background-color: hsl(var(--h), var(--s), calc(var(--l) - 10%));
+}
+
+input[type=submit]:active{
+  --smear: .1em;
+  --offset: .1em;
+  --opacity: .3;
 }
 
 footer{
