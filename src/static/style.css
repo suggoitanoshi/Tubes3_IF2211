@@ -31,6 +31,10 @@ img{
   height: calc(100vh - 240px);
 }
 
+.chat-content{
+  white-space: pre;
+}
+
 .chat-content-outer{
   padding: 15px;
   border-style: solid;
@@ -46,7 +50,7 @@ img{
 
 .chat-bubble{
   display: flex;
-  align-items: center;
+  align-items: start;
 }
 .chat-bubble .image{
   display: block;
