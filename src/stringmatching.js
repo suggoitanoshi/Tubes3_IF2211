@@ -49,8 +49,42 @@ const generateReply = (query) => {
  * @returns {int} index kemunculan pertama pattern, -1 jika tidak ditemukan
  */
 const KMP = (string, pattern) => {
-  const b = (x) => {}; // border function
-  return true;
+  let n = string.length, m = pattern.length;
+  let border = [];
+  border = b(pattern);
+  let i = 0, j = 0;
+
+  const b = (x) => {  // border function
+    let fail = []
+    fail[0] = 0;
+    let i = 1, j = 0;
+    let m = pattern.length();
+    while (i < m) {
+        if (pattern.charAt(j) == pattern.charAt(i)) {
+          fail[i] = j + 1;
+        i++;
+        j++;
+        }
+        else if (j > 0)
+          j = fail[j-1];
+        else {
+          fail[i] = 0;
+        i++;
+        }
+      }
+      return fail;
+  };
+
+  while (i < n) {
+      if (pattern.charAt(j) == text.charAt(i)) {
+        if (j == m - 1) return i - m + 1; // Match Found
+        i++;
+        j++;
+      }
+      else if (j > 0) let j = fail[j-1];
+      else i++;
+  } 
+  return -1; // No Match Found
 };
 
 /**
