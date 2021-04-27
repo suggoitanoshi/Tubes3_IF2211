@@ -49,4 +49,28 @@ const addToDatabase = (data) => {
   });
 }
 
-module.exports = { getDataAll,getDataFilter, addToDatabase };
+/**
+ * Operasi untuk mengedit satu row pada database
+ * @param {Object} row task yang akan diubah
+ * @returns {Promise} promise dari menulis database
+ */
+const editRow = (row) => {
+  return getDataAll().then((data) => {
+    return util.rewriteCSV(path.join(__dirname, '../data/tasks.csv'),
+      data.map((dbrow) => {
+        if(dbrow.id === row.id){
+          return row;
+        }
+        return dbrow;
+      }).reduce((ax, cx) => {
+        Object.keys(cx).forEach((key) => {
+          if(typeof ax[key] === 'undefined') ax[key] = [];
+          ax[key].append(cx[key]);
+          return ax;
+        });
+      }, {})
+    );
+  });
+}
+
+module.exports = { getDataAll, getDataFilter, addToDatabase, editRow };

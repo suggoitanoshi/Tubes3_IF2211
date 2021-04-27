@@ -73,4 +73,25 @@ const writeCSV = (filename, cols, opts) => {
   }
 }
 
-module.exports = { parseCSV, writeCSV };
+/**
+ * Menulis ulang satu file csv dari data yang diberikan
+ * @param {string} filename nama file csv yang akan ditulis
+ * @param {Object} data data yang berupa `{'key': [values]}`
+ */
+const rewriteCSV = (filename, data) => {
+  let header = [];
+  Object.keys(data).forEach((k) => header.push(k));
+  fs.writeFile(filename, header.join(',')+'\n').then(() => {
+    return fs.appendFile(filename,
+      data[Object.keys(data)[0]].reduce((ax, _, i) => {
+        ax.push(Object.keys(data).reduce((rax, cx, ci) => {
+          rax[ci] = data[cx][i];
+          return rax;
+        }, []).join(','));
+        return ax;
+      }, []).join('\n')
+    );
+  }); 
+}
+
+module.exports = { parseCSV, writeCSV, rewriteCSV };
