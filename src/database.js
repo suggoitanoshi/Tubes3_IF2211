@@ -13,7 +13,7 @@ const getDataAll = () => {
       byRow.push(keys.reduce((ax, cx) => { ax[cx] = cx !== 'deadline' ? data[cx][i] : new Date(data[cx][i]); return ax; }, {}));
     });
     return byRow;
-  });
+  }).catch((err) => []);
 }
 
 /**
@@ -65,9 +65,9 @@ const editRow = (row) => {
       }).reduce((ax, cx) => {
         Object.keys(cx).forEach((key) => {
           if(typeof ax[key] === 'undefined') ax[key] = [];
-          ax[key].append(cx[key]);
-          return ax;
+          ax[key].push(cx[key]);
         });
+        return ax;
       }, {})
     );
   });
