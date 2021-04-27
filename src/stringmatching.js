@@ -18,23 +18,23 @@ util.parseCSV(path.join(__dirname, '../data/querywords.csv')).then((data) => {
  */
 const generateReply = (query) => {
   const adaKatapenting = katapenting['alias'].filter((kata) => BoyerMoore(query, kata) !== -1).length !== 0;
-  if(!adaKatapenting) return 'Pesan tidak dikenali';
+  if(!adaKatapenting) return {'body': 'Pesan tidak dikenali', 'reaction': 'confuse'};
   const tanya = katatanya['kata'].filter((kata) => BoyerMoore(query, kata) !== -1).length !== 0;
   const date = extractDate(query);
   if(tanya){
     const period = getTimePeriod(query, date);
-    return 'Anda bertanya, bot menjawab';
+    return {'body': 'Anda bertanya, bot menjawab', 'reaction': 'talk'};
   }
   const type = extractType(query);
   const matkul = extractKodeMatkul(query);
   let topic = extractTopic(query);
   if(date.length == 0)
   {
-    return 'Error date';
+    return {'body': 'Error date', 'reaction': 'confuse'};
   }
   else if(typeof matkul === 'undefined')
   {
-    return 'Error matkul';
+    return {'body': 'Error matkul', 'reaction': 'confuse'};
   }
   else if(type[0]!="[")
   {
@@ -45,11 +45,11 @@ const generateReply = (query) => {
           return console.log(err);
       }
       console.log("Saved");});*/
-    return "[task] " + hasil;
+    return {'body': "[task] " + hasil, 'reaction': 'talk'};
   }
   else
   {
-    return "Error type";
+    return {'body': "Error type", 'reaction': 'confuse'};
   }
 
 };
