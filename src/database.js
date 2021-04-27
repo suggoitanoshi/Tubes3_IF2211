@@ -1,11 +1,12 @@
 const util = require('./util.js');
+const path = require('path')
 
 const getDataAll = () => {
-  return util.parseCSV('../data/tasks.csv').then((data) => {
+  return util.parseCSV(path.join(__dirname, '../data/tasks.csv')).then((data) => {
     const byRow = [];
     const keys = Object.keys(data);
     data[keys[0]].forEach((_, i) => {
-      byRow.push(keys.reduce((ax, cx) => { ax[cx] = data[cx][i]; return ax; }, {}));
+      byRow.push(keys.reduce((ax, cx) => { ax[cx] = cx !== 'deadline' ? data[cx][i] : new Date(data[cx][i]); return ax; }, {}));
     });
     return byRow;
   });
@@ -14,11 +15,12 @@ const getDataAll = () => {
 const getDataFilter = (from, to) => {
   return getDataAll().then((byRow) => {
     return byRow.filter((row) => {
-      from < row['deadline'] && row['deadline'] < to
+      return from <= row['deadline'] && row['deadline'] <= to
     });
   })
 }
 const addToDatabase = (data) => {
+  data['deadline'] = `${data['deadline'].getMonth()}/${data['deadline'].getDate()}/${data['deadline'].getFullYear()}`
   util.writeCSV('../data/tasks.csv', data);
 }
 
