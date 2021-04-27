@@ -17,15 +17,16 @@ const parseCSV = (filename, opts) => {
       content.toString()
              .replaceAll('\r', '')
              .split('\n')
-             .forEach((line, i) => {
+             .forEach((line, i, arr) => {
                if(line == '') return;
                const entry = line.split(regexp);
                if(useHeader){
-                 if(i == 0) entry.forEach((e) => {
-                   headers.push(e);
-                   csvcontent[e] = [];
-                 });
-                 else entry.forEach((e, i) => {
+                 if(i !== 0)
+                  entry.forEach((e, i) => {
+                   if(typeof headers[i] === 'undefined'){
+                     headers[i] = arr[0].split(regexp)[i];
+                     csvcontent[headers[i]] = [];
+                   }
                    csvcontent[headers[i]].push(e);
                  });
                }
@@ -89,7 +90,7 @@ const rewriteCSV = (filename, data) => {
           return rax;
         }, []).join(','));
         return ax;
-      }, []).join('\n')
+      }, []).join('\n')+'\n'
     );
   }); 
 }
