@@ -1,6 +1,10 @@
 const util = require('./util.js');
 const path = require('path')
 
+/**
+ * Membaca database dan memberikan list task dalam database
+ * @returns {[Object]} list task yang berhasil dibaca
+ */
 const getDataAll = () => {
   return util.parseCSV(path.join(__dirname, '../data/tasks.csv')).then((data) => {
     const byRow = [];
@@ -12,6 +16,12 @@ const getDataAll = () => {
   });
 }
 
+/**
+ * Membaca database, lalu mencari task yang berada dalam jangka waktu tertentu
+ * @param {Date} from 
+ * @param {Date} to 
+ * @returns {[Object]} list task yang deadlinenya berada dalam range from..to
+ */
 const getDataFilter = (from, to) => {
   return getDataAll().then((byRow) => {
     return byRow.filter((row) => {
@@ -19,6 +29,12 @@ const getDataFilter = (from, to) => {
     });
   })
 }
+
+/**
+ * Menambahkan data ke database
+ * @param {[Object]} data task yang akan ditambahkan. Harus memiliki atribut `tipe`, `topik`, `matkul`, dan `deadline`.
+ * @returns {Promise} promise dari menulis database
+ */
 const addToDatabase = (data) => {
   data['deadline'] = `${data['deadline'].getMonth()}/${data['deadline'].getDate()}/${data['deadline'].getFullYear()}`
   data['sudah'] = 0;

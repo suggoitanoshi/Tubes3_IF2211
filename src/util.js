@@ -1,5 +1,11 @@
 const fs = require('fs/promises')
 
+/**
+ * Membaca file csv, lalu mengembalikan object hasil parsing
+ * @param {string} filename nama file csv yang akan dibaca
+ * @param {Object} opts options yang diberikan
+ * @returns {Promise} Promise yang akan mengembalikan hasil parse
+ */
 const parseCSV = (filename, opts) => {
   const useHeader = opts?.useHeader ?? true;
   const sep = opts?.separator ?? ',';
@@ -37,6 +43,12 @@ const parseCSV = (filename, opts) => {
   });
 }
 
+/**
+ * Menuliskan data baris tambahan ke csv
+ * @param {string} filename nama file csv yang akan dituliskan
+ * @param {Object} cols Kolom-kolom bernama yang akan ditulis, seperti `{'namakolom': 'isikolom'}`
+ * @param {Object} opts options yang diberikan
+ */
 const writeCSV = (filename, cols, opts) => {
   const useHeader = opts?.useHeader ?? true;
   let header = [];
