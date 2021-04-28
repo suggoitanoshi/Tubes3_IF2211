@@ -13,9 +13,6 @@ NodeJS v15
 1. Jalankan server dengan `npm run start`
 2. Akses web server di localhost:6969
 
-### Demo
-TBA
-
 ### Author
 Melita                          13519063
 Fransiskus Febryan Suryawan     13519124
