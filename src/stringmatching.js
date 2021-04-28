@@ -46,7 +46,7 @@ const generateReply = async (query) => {
   const selesai = kataselesai['kata'].filter((kata) => BoyerMoore(query, kata) !== -1).length !== 0;
   const adaKatapenting = katapenting['alias'].filter((kata) => BoyerMoore(query.toLowerCase(), kata) !== -1).length !== 0 ||
     query.match(/deadline/i) !== null || tanya || ubah || selesai;
-
+  const matkul = extractKodeMatkul(query);
   if(!adaKatapenting) return {'body': 'Pesan tidak dikenali', 'reaction': 'confuse'};
   const date = extractDate(query);
   let type = extractType(query);
@@ -65,7 +65,7 @@ const generateReply = async (query) => {
 
       data = data.filter((row) => row['sudah'] == 0);
       if(type !== 'DEADLINE') data = data.filter((row) => row['tipe'] === type);
-
+      if(typeof matkul !== 'undefined') data = data.filter((row) => row['matkul'] === matkul);
       if(data.length === 0) return {'body': 'Tidak ada deadline~', 'reaction': 'talk'};
 
       if(type === 'DEADLINE'){
@@ -95,7 +95,7 @@ const generateReply = async (query) => {
       return {'body': `Hore, kamu menyelesaikan ${row['topik']} (ID: ${row['id']})!`, 'reaction': 'talk'};
     }
   }
-  const matkul = extractKodeMatkul(query);
+  
   let topic = extractTopic(query);
   if(type[0]!="[")
   {
@@ -262,6 +262,7 @@ const extractDate = (query) => {
  */
 const extractKodeMatkul = (query) => {
   kode = query.match(/([a-z]{2}\d{4})/i);
+  
   return kode?.[0]?.toUpperCase();
 }
 
