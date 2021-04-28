@@ -325,9 +325,9 @@ const getTimePeriod = (query, dates) => {
     ];
   }
   if(query.match(/ke depan/i) !== null){
-    const range = query.match(/(\d)\s+(.*)\s+ke depan/i);
+    const range = query.match(/(\d)+\s+(.*)\s+ke depan/i);
     let mult = 1, n = 0;
-    const angka = range[0].match(/\d/);
+    const angka = range[0].match(/\d+/);
     const satuan = range[0].match(/minggu/i);
     if(typeof angka===null) return undefined;
     else n = angka[0]-0;
