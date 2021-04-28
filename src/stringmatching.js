@@ -33,7 +33,7 @@ const generateReply = async (query) => {
 2. Melihat daftar task\n\
 3. Membarui task\n\
 4. Menandai task selesai\n\
-5. \n\
+\n\
 [Daftar Kata Penting]\n'+
       katapenting['alias'].reduce((acc, curr, i) => { acc[i] = `${i+1}. ${curr}`; return acc }, []).join('\n'),
       'reaction': 'talk'
@@ -64,7 +64,6 @@ const generateReply = async (query) => {
       else data = await db.getDataAll();
 
       data = data.filter((row) => row['sudah'] == 0);
-
       if(type !== 'DEADLINE') data = data.filter((row) => row['tipe'] === type);
 
       if(data.length === 0) return {'body': 'Tidak ada deadline~', 'reaction': 'talk'};
