@@ -63,7 +63,7 @@ const generateReply = async (query) => {
       }
       else data = await db.getDataAll();
 
-      data = data.filter((row) => row['sudah'] == 0 && row['deadline'] >= new Date(Date.now()).getDate());
+      data = data.filter((row) => row['sudah'] == 0 && row['deadline'] >= new Date(Date.now()).setHours(0,0,0,0));
 
       if(type !== 'DEADLINE') data = data.filter((row) => row['tipe'] === type);
       if(typeof matkul !== 'undefined') data = data.filter((row) => row['matkul'] === matkul);
@@ -80,7 +80,7 @@ const generateReply = async (query) => {
     else if(typeof topic === 'undefined')
     {
       data = await db.getDataAll();
-      data = data.filter((row) => row['sudah'] == 0);
+      data = data.filter((row) => row['sudah'] == 0 && row['deadline']>= new Date(Date.now()).setHours(0,0,0,0));
       if(type[0] === '[') type = 'DEADLINE';
       if(type !== 'DEADLINE') data = data.filter((row) => row['tipe'] === type);
       if(typeof matkul !== 'undefined') data = data.filter((row) => row['matkul'] === matkul);
