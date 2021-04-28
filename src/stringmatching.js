@@ -63,7 +63,7 @@ const generateReply = async (query) => {
       }
       else data = await db.getDataAll();
 
-      data = data.filter((row) => row['sudah'] == 0);
+      data = data.filter((row) => row['sudah'] == 0 && row['deadline'] >= new Date(Date.now()).getDate());
 
       if(type !== 'DEADLINE') data = data.filter((row) => row['tipe'] === type);
 
