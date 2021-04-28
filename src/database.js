@@ -6,7 +6,7 @@ const path = require('path')
  * @returns {[Object]} list task yang berhasil dibaca
  */
 const getDataAll = () => {
-  return util.parseCSV(path.join(__dirname, '../data/tasks.csv')).then((data) => {
+  return util.parseCSV(path.join(__dirname, '../test/tasks.csv')).then((data) => {
     const byRow = [];
     const keys = Object.keys(data);
     data[keys[0]].forEach((_, i) => {
@@ -38,7 +38,7 @@ const getDataFilter = (from, to) => {
 const addToDatabase = (data) => {
   data['deadline'] = `${data['deadline'].getMonth()}/${data['deadline'].getDate()}/${data['deadline'].getFullYear()}`
   data['sudah'] = 0;
-  const target = path.join(__dirname, '../data/tasks.csv');
+  const target = path.join(__dirname, '../test/tasks.csv');
   return getDataAll().then((dbdata) => {
     data['id'] = dbdata[dbdata.length-1]['id']-0+1;
     return util.writeCSV(target, data);
@@ -56,7 +56,7 @@ const addToDatabase = (data) => {
  */
 const editRow = (row) => {
   return getDataAll().then((data) => {
-    return util.rewriteCSV(path.join(__dirname, '../data/tasks.csv'),
+    return util.rewriteCSV(path.join(__dirname, '../test/tasks.csv'),
       data.map((dbrow) => {
         if(dbrow.id === row.id){
           return row;

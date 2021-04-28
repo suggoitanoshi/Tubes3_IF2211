@@ -4,16 +4,16 @@ const db = require('./database.js');
 
 let katapenting, katatanya, kataubah, kataselesai;
 
-util.parseCSV(path.join(__dirname, '../data/katapenting.csv')).then((data) => {
+util.parseCSV(path.join(__dirname, '../test/katapenting.csv')).then((data) => {
   katapenting = data;
 });
-util.parseCSV(path.join(__dirname, '../data/querywords.csv')).then((data) => {
+util.parseCSV(path.join(__dirname, '../test/querywords.csv')).then((data) => {
   katatanya = data;
 });
-util.parseCSV(path.join(__dirname, "../data/changekeyword.csv")).then((data) => {
+util.parseCSV(path.join(__dirname, "../test/changekeyword.csv")).then((data) => {
   kataubah = data;
 });
-util.parseCSV(path.join(__dirname, '../data/finishkeyword.csv')).then((data) => {
+util.parseCSV(path.join(__dirname, '../test/finishkeyword.csv')).then((data) => {
   kataselesai = data;
 });
 
@@ -39,7 +39,7 @@ const generateReply = async (query) => {
       'reaction': 'talk'
     }
   }
-
+  let topic = extractTopic(query);
   /* kata-kata penting */
   const tanya = katatanya['kata'].filter((kata) => BoyerMoore(query, kata) !== -1).length !== 0;
   const ubah = kataubah['kata'].filter((kata) => BoyerMoore(query, kata) !== -1).length !== 0;
@@ -76,6 +76,16 @@ const generateReply = async (query) => {
       }
       return {'body': data.map((row) => format(row)).join('\n'), 'reaction': 'talk'};
     }
+    else if(typeof topic === 'undefined')
+    {
+      data = await db.getDataAll();
+      data = data.filter((row) => row['sudah'] == 0);
+      if(type[0] === '[') type = 'DEADLINE';
+      if(type !== 'DEADLINE') data = data.filter((row) => row['tipe'] === type);
+      if(typeof matkul !== 'undefined') data = data.filter((row) => row['matkul'] === matkul);
+      if(data.length === 0) return {'body': 'Tidak ada deadline~', 'reaction': 'talk'};
+      return {'body': data.map((row) => format(row)).join('\n'), 'reaction': 'talk'};
+    }
   }
   if(ubah || selesai){
     const id = query.match(/(id|task)\s+(\d+)/i)?.[2];
@@ -96,7 +106,7 @@ const generateReply = async (query) => {
     }
   }
   
-  let topic = extractTopic(query);
+  
   if(type[0]!="[")
   {
     if(date.length == 0)
