@@ -248,7 +248,7 @@ const extractDate = (query) => {
                  'nov': 10,
                  'des': 11
                 }
-  const match = query.matchAll(/(?<d>\d{1,2})(\ |\/|-)(?<m>((jan(uari)?)|(feb(ruari)?)|(mar|maret)|(apr|april)|(mei)|(juni?)|(juli?)|(agu(stus)?)|(sep(tember)?)|(okt(ober)?)|(nov(ember)?)|(des(ember)?))|\d{1,2})(\ |\/|-)(?<y>\d{2,4})/g);
+  const match = query.matchAll(/(?<d>\d{1,2})(\ |\/|-)(?<m>((jan(uari)?)|(feb(ruari)?)|(mar|maret)|(apr|april)|(mei)|(juni?)|(juli?)|(agu(stus)?)|(sep(tember)?)|(okt(ober)?)|(nov(ember)?)|(des(ember)?))|\d{1,2})(\ |\/|-)(?<y>\d{2,4})/gi);
   const dates = [...match].map((m) =>{
     m = m.groups;
     return new Date(m.y, month[m?.m?.toLowerCase().substring(0,3)] ?? m.m-1, m.d);
@@ -325,12 +325,14 @@ const getTimePeriod = (query, dates) => {
     ];
   }
   if(query.match(/ke depan/i) !== null){
-    const range = query.match(/(\d)\s+(.*)?\s+ke depan/)?.groups;
+    const range = query.match(/(\d)\s+(.*)\s+ke depan/i);
     let mult = 1, n = 0;
-    if(typeof range?.[0] === 'undefined') return undefined;
-    else n = range?.[0]-0;
-    if(typeof range?.[1] === 'undefined') return undefined;
-    else mult = range?.[1].match(/minggu/i) === null ? 1 : 7;
+    const angka = range[0].match(/\d/);
+    const satuan = range[0].match(/minggu/i);
+    if(typeof angka===null) return undefined;
+    else n = angka[0]-0;
+    if(typeof satuan===null) return undefined;
+    else mult = satuan === null ? 1 : 7;
     const datetoday = getToday();
     return [
       new Date(datetoday.y, datetoday.m, datetoday.d),
