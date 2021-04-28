@@ -4,16 +4,16 @@ const db = require('./database.js');
 
 let katapenting, katatanya, kataubah, kataselesai;
 
-util.parseCSV(path.join(__dirname, '../data/katapenting.csv')).then((data) => {
+util.parseCSV(path.join(__dirname, '../test/katapenting.csv')).then((data) => {
   katapenting = data;
 });
-util.parseCSV(path.join(__dirname, '../data/querywords.csv')).then((data) => {
+util.parseCSV(path.join(__dirname, '../test/querywords.csv')).then((data) => {
   katatanya = data;
 });
-util.parseCSV(path.join(__dirname, "../data/changekeyword.csv")).then((data) => {
+util.parseCSV(path.join(__dirname, "../test/changekeyword.csv")).then((data) => {
   kataubah = data;
 });
-util.parseCSV(path.join(__dirname, '../data/finishkeyword.csv')).then((data) => {
+util.parseCSV(path.join(__dirname, '../test/finishkeyword.csv')).then((data) => {
   kataselesai = data;
 });
 
@@ -33,20 +33,20 @@ const generateReply = async (query) => {
 2. Melihat daftar task\n\
 3. Membarui task\n\
 4. Menandai task selesai\n\
-5. \n\
+\n\
 [Daftar Kata Penting]\n'+
       katapenting['alias'].reduce((acc, curr, i) => { acc[i] = `${i+1}. ${curr}`; return acc }, []).join('\n'),
       'reaction': 'talk'
     }
   }
-
+  let topic = extractTopic(query);
   /* kata-kata penting */
   const tanya = katatanya['kata'].filter((kata) => BoyerMoore(query, kata) !== -1).length !== 0;
   const ubah = kataubah['kata'].filter((kata) => BoyerMoore(query, kata) !== -1).length !== 0;
   const selesai = kataselesai['kata'].filter((kata) => BoyerMoore(query, kata) !== -1).length !== 0;
-  const adaKatapenting = katapenting['alias'].filter((kata) => BoyerMoore(query, kata) !== -1).length !== 0 ||
+  const adaKatapenting = katapenting['alias'].filter((kata) => BoyerMoore(query.toLowerCase(), kata) !== -1).length !== 0 ||
     query.match(/deadline/i) !== null || tanya || ubah || selesai;
-
+  const matkul = extractKodeMatkul(query);
   if(!adaKatapenting) return {'body': 'Pesan tidak dikenali', 'reaction': 'confuse'};
   const date = extractDate(query);
   let type = extractType(query);
@@ -66,7 +66,7 @@ const generateReply = async (query) => {
       data = data.filter((row) => row['sudah'] == 0 && row['deadline'] >= new Date(Date.now()).getDate());
 
       if(type !== 'DEADLINE') data = data.filter((row) => row['tipe'] === type);
-
+      if(typeof matkul !== 'undefined') data = data.filter((row) => row['matkul'] === matkul);
       if(data.length === 0) return {'body': 'Tidak ada deadline~', 'reaction': 'talk'};
 
       if(type === 'DEADLINE'){
@@ -75,6 +75,16 @@ const generateReply = async (query) => {
           'reaction': 'talk'
         };
       }
+      return {'body': data.map((row) => format(row)).join('\n'), 'reaction': 'talk'};
+    }
+    else if(typeof topic === 'undefined')
+    {
+      data = await db.getDataAll();
+      data = data.filter((row) => row['sudah'] == 0);
+      if(type[0] === '[') type = 'DEADLINE';
+      if(type !== 'DEADLINE') data = data.filter((row) => row['tipe'] === type);
+      if(typeof matkul !== 'undefined') data = data.filter((row) => row['matkul'] === matkul);
+      if(data.length === 0) return {'body': 'Tidak ada deadline~', 'reaction': 'talk'};
       return {'body': data.map((row) => format(row)).join('\n'), 'reaction': 'talk'};
     }
   }
@@ -96,8 +106,8 @@ const generateReply = async (query) => {
       return {'body': `Hore, kamu menyelesaikan ${row['topik']} (ID: ${row['id']})!`, 'reaction': 'talk'};
     }
   }
-  const matkul = extractKodeMatkul(query);
-  let topic = extractTopic(query);
+  
+  
   if(type[0]!="[")
   {
     if(date.length == 0)
@@ -248,7 +258,7 @@ const extractDate = (query) => {
                  'nov': 10,
                  'des': 11
                 }
-  const match = query.matchAll(/(?<d>\d{1,2})(\ |\/|-)(?<m>((jan(uari)?)|(feb(ruari)?)|(mar|maret)|(apr|april)|(mei)|(juni?)|(juli?)|(agu(stus)?)|(sep(tember)?)|(okt(ober)?)|(nov(ember)?)|(des(ember)?))|\d{1,2})(\ |\/|-)(?<y>\d{2,4})/g);
+  const match = query.matchAll(/(?<d>\d{1,2})(\ |\/|-)(?<m>((jan(uari)?)|(feb(ruari)?)|(mar|maret)|(apr|april)|(mei)|(juni?)|(juli?)|(agu(stus)?)|(sep(tember)?)|(okt(ober)?)|(nov(ember)?)|(des(ember)?))|\d{1,2})(\ |\/|-)(?<y>\d{2,4})/gi);
   const dates = [...match].map((m) =>{
     m = m.groups;
     return new Date(m.y, month[m?.m?.toLowerCase().substring(0,3)] ?? m.m-1, m.d);
@@ -263,6 +273,7 @@ const extractDate = (query) => {
  */
 const extractKodeMatkul = (query) => {
   kode = query.match(/([a-z]{2}\d{4})/i);
+  
   return kode?.[0]?.toUpperCase();
 }
 
@@ -325,12 +336,14 @@ const getTimePeriod = (query, dates) => {
     ];
   }
   if(query.match(/ke depan/i) !== null){
-    const range = query.match(/(\d)\s+(.*)?\s+ke depan/)?.groups;
+    const range = query.match(/(\d)+\s+(hari|minggu)\s+ke depan/i);
     let mult = 1, n = 0;
-    if(typeof range?.[0] === 'undefined') return undefined;
-    else n = range?.[0]-0;
-    if(typeof range?.[1] === 'undefined') return undefined;
-    else mult = range?.[1].match(/minggu/i) === null ? 1 : 7;
+    const angka = range[0].match(/\d+/);
+    const satuan = range[0].match(/minggu/i);
+    if(typeof angka===null) return undefined;
+    else n = angka[0]-0;
+    if(typeof satuan===null) return undefined;
+    else mult = satuan === null ? 1 : 7;
     const datetoday = getToday();
     return [
       new Date(datetoday.y, datetoday.m, datetoday.d),
