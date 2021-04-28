@@ -44,7 +44,7 @@ const generateReply = async (query) => {
   const tanya = katatanya['kata'].filter((kata) => BoyerMoore(query, kata) !== -1).length !== 0;
   const ubah = kataubah['kata'].filter((kata) => BoyerMoore(query, kata) !== -1).length !== 0;
   const selesai = kataselesai['kata'].filter((kata) => BoyerMoore(query, kata) !== -1).length !== 0;
-  const adaKatapenting = katapenting['alias'].filter((kata) => BoyerMoore(query, kata) !== -1).length !== 0 ||
+  const adaKatapenting = katapenting['alias'].filter((kata) => BoyerMoore(query.toLowerCase(), kata) !== -1).length !== 0 ||
     query.match(/deadline/i) !== null || tanya || ubah || selesai;
 
   if(!adaKatapenting) return {'body': 'Pesan tidak dikenali', 'reaction': 'confuse'};
